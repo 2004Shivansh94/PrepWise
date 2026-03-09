@@ -23,6 +23,7 @@ interface Interview {
   userId: string;
   type: string;
   finalized: boolean;
+  resumeBased?: boolean;
 }
 
 interface CreateFeedbackParams {
@@ -30,6 +31,11 @@ interface CreateFeedbackParams {
   userId: string;
   transcript: { role: string; content: string }[];
   feedbackId?: string;
+}
+
+interface CreateResumeInterviewParams {
+  userId: string;
+  questions: string[];
 }
 
 interface User {

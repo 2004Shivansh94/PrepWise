@@ -18,9 +18,7 @@ export async function createFeedback(params: CreateFeedbackParams) {
       .join("");
 
     const { object } = await generateObject({
-      model: google("gemini-2.0-flash-001", {
-        structuredOutputs: false,
-      }),
+      model: google("gemini-2.0-flash-001"),
       schema: feedbackSchema,
       prompt: `
         You are an AI interviewer analyzing a mock interview. Your task is to evaluate the candidate based on structured categories. Be thorough and detailed in your analysis. Don't be lenient with the candidate. If there are mistakes or areas for improvement, point them out.
@@ -122,4 +120,30 @@ export async function getInterviewsByUserId(
     id: doc.id,
     ...doc.data(),
   })) as Interview[];
+}
+
+export async function createResumeInterview(
+  params: CreateResumeInterviewParams
+) {
+  try {
+    const newInterviewRef = db.collection("interviews").doc();
+    const interviewData = {
+      role: "Resume Based",
+      level: "Varied",
+      type: "Technical",
+      techstack: ["React", "Next.js", "Node.js", "Firebase", "Other"],
+      questions: params.questions,
+      createdAt: new Date().toISOString(),
+      userId: params.userId,
+      finalized: true,
+      resumeBased: true,
+    };
+
+    await newInterviewRef.set(interviewData);
+
+    return { success: true, interviewId: newInterviewRef.id };
+  } catch (error) {
+    console.error("Error creating resume interview:", error);
+    return { success: false };
+  }
 }
