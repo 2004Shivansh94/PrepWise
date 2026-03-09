@@ -3,6 +3,8 @@ import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import InterviewCard from "@/components/InterviewCard";
+import Testimonials from "@/components/Testimonials";
+import Footer from "@/components/Footer";
 
 import { getCurrentUser } from "@/lib/actions/auth.action";
 import {
@@ -40,11 +42,12 @@ async function Home() {
           alt="robo-dude"
           width={400}
           height={400}
-          className="max-sm:hidden"
         />
       </section>
 
-      <section className="flex flex-col gap-6 mt-8">
+      <Testimonials />
+
+      <section className="flex flex-col gap-6 mt-16">
         <h2>Your Interviews</h2>
 
         <div className="interviews-section">
@@ -87,6 +90,8 @@ async function Home() {
           )}
         </div>
       </section>
+
+      <Footer />
     </>
   );
 }
