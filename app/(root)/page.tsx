@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import InterviewCard from "@/components/InterviewCard";
 import Testimonials from "@/components/Testimonials";
 import Footer from "@/components/Footer";
+import Features from "@/components/Features";
 
 import { getCurrentUser } from "@/lib/actions/auth.action";
 import {
@@ -25,25 +26,28 @@ async function Home() {
 
   return (
     <>
-      <section className="card-cta">
-        <div className="flex flex-col gap-6 max-w-lg">
-          <h2>Get Interview-Ready with AI-Powered Practice & Feedback</h2>
-          <p className="text-lg">
-            Practice real interview questions & get instant feedback
-          </p>
+      <section className="flex flex-col items-center text-center gap-8 py-24 px-4 mt-8 relative">
+        {/* Background ambient glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white/[0.02] rounded-full blur-3xl pointer-events-none"></div>
+        
+        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight max-w-4xl bg-clip-text text-transparent bg-gradient-to-br from-white via-white to-neutral-500 leading-tight pb-2 z-10">
+          Practice AI-Powered Mock Interviews
+        </h1>
+        <p className="text-lg md:text-xl text-neutral-400 max-w-2xl leading-relaxed z-10">
+          Prepare for technical interviews using personalized AI-generated questions and advanced voice-based interview simulations.
+        </p>
 
-          <Button asChild className="btn-primary max-sm:w-full">
-            <Link href="/interview">Start an Interview</Link>
+        <div className="flex flex-col sm:flex-row gap-6 mt-8 w-full sm:w-auto z-10">
+          <Button asChild className="btn-primary max-sm:w-full text-md py-6 px-10 rounded-full shadow-[0_0_40px_rgba(255,255,255,0.06)] hover:shadow-[0_0_40px_rgba(255,255,255,0.15)] transition-all hover:-translate-y-0.5">
+            <Link href="/interview">Start AI Interview</Link>
+          </Button>
+          <Button asChild variant="outline" className="max-sm:w-full text-md py-6 px-10 rounded-full bg-neutral-950/50 border-neutral-700 hover:bg-neutral-800 hover:border-neutral-500 text-white transition-all hover:-translate-y-0.5 backdrop-blur-sm">
+            <Link href="/interview">Resume-Based Interview</Link>
           </Button>
         </div>
-
-        <Image
-          src="/robot.png"
-          alt="robo-dude"
-          width={400}
-          height={400}
-        />
       </section>
+
+      <Features />
 
       <Testimonials />
 
