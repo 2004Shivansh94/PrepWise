@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import InterviewCard from "@/components/InterviewCard";
@@ -15,14 +14,15 @@ import {
 
 async function Home() {
   const user = await getCurrentUser();
+  const userId = user?.id ?? "";
 
   const [userInterviews, allInterview] = await Promise.all([
-    getInterviewsByUserId(user?.id!),
-    getLatestInterviews({ userId: user?.id! }),
+    getInterviewsByUserId(userId),
+    getLatestInterviews({ userId }),
   ]);
 
-  const hasPastInterviews = userInterviews?.length! > 0;
-  const hasUpcomingInterviews = allInterview?.length! > 0;
+  const hasPastInterviews = (userInterviews?.length ?? 0) > 0;
+  const hasUpcomingInterviews = (allInterview?.length ?? 0) > 0;
 
   return (
     <>
@@ -42,7 +42,7 @@ async function Home() {
             <Link href="/interview">Start AI Interview</Link>
           </Button>
           <Button asChild variant="outline" className="max-sm:w-full text-md py-6 px-10 rounded-full bg-neutral-950/50 border-neutral-700 hover:bg-neutral-800 hover:border-neutral-500 text-white transition-all hover:-translate-y-0.5 backdrop-blur-sm">
-            <Link href="/interview">Resume-Based Interview</Link>
+            <Link href="/interview?mode=resume">Resume-Based Interview</Link>
           </Button>
         </div>
       </section>

@@ -8,11 +8,17 @@ import ResumeUpload from "@/components/ResumeUpload";
 import { Button } from "@/components/ui/button";
 
 interface InterviewSelectorProps {
-  user: any;
+  user: User | null;
+  initialMode?: "standard" | "resume";
 }
 
-export default function InterviewSelector({ user }: InterviewSelectorProps) {
-  const [mode, setMode] = useState<"standard" | "resume">("standard");
+export default function InterviewSelector({
+  user,
+  initialMode = "standard",
+}: InterviewSelectorProps) {
+  const [mode, setMode] = useState<"standard" | "resume">(initialMode);
+  const userId = user?.id ?? "";
+  const userName = user?.name ?? "there";
 
   return (
     <div className="flex flex-col gap-8 items-center w-full mt-4">
@@ -36,10 +42,10 @@ export default function InterviewSelector({ user }: InterviewSelectorProps) {
       <div className="w-full flex justify-center mt-4">
         {mode === "standard" ? (
           <div className="w-full flex justify-center flex-col items-center">
-            <Agent userName={user?.name!} userId={user?.id} type="generate" />
+            <Agent userName={userName} userId={userId} type="generate" />
           </div>
         ) : (
-          <ResumeUpload userId={user?.id!} />
+          <ResumeUpload userId={userId} />
         )}
       </div>
     </div>
