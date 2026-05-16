@@ -1,15 +1,20 @@
 import { generateText } from "ai";
-import { google } from "@ai-sdk/google";
-
+import { groq } from "@ai-sdk/groq";
 import { db } from "@/firebase/admin";
 import { getRandomInterviewCover } from "@/lib/utils";
 
 export async function POST(request: Request) {
-  const { type, role, level, techstack, amount, userid } = await request.json();
+  const body = await request.json();
+
+  // Vapi sends tool calls inside message.toolCallList
+  const toolCall = body?.message?.toolCallList?.[0];
+  const args = toolCall?.function?.arguments ?? body;
+
+  const { role, level, type, techstack, amount, userid } = args;
 
   try {
     const { text: questions } = await generateText({
-      model: google("gemini-2.0-flash-001"),
+      model: groq("llama-3.1-8b-instant"),
       prompt: `Prepare questions for a job interview.
         The job role is ${role}.
         The job experience level is ${level}.
@@ -20,16 +25,14 @@ export async function POST(request: Request) {
         The questions are going to be read by a voice assistant so do not use "/" or "*" or any other special characters which might break the voice assistant.
         Return the questions formatted like this:
         ["Question 1", "Question 2", "Question 3"]
-        
-        Thank you! <3
-    `,
+        Thank you! <3`,
     });
 
     const interview = {
-      role: role,
-      type: type,
-      level: level,
-      techstack: techstack.split(","),
+      role,
+      type,
+      level,
+      techstack: techstack.split(",").map((t: string) => t.trim()),
       questions: JSON.parse(questions),
       userId: userid,
       finalized: true,
@@ -39,10 +42,25 @@ export async function POST(request: Request) {
 
     await db.collection("interviews").add(interview);
 
-    return Response.json({ success: true }, { status: 200 });
+    // This is the response shape Vapi expects back
+    return Response.json(
+      {
+        results: [
+          {
+            toolCallId: toolCall?.id,
+            result:
+              "Interview generated successfully! You can now go back to the dashboard to take your interview.",
+          },
+        ],
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error:", error);
-    return Response.json({ success: false, error: error }, { status: 500 });
+    return Response.json(
+      { error: "Failed to generate interview" },
+      { status: 500 }
+    );
   }
 }
 

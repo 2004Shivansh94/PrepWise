@@ -155,6 +155,79 @@ End the conversation on a polite and positive note.
   },
 };
 
+export const generateInterviewer: CreateAssistantDTO = {
+  name: "Interview Generator",
+  firstMessage:
+    "Hi! I'll help set up your mock interview. What job role are you applying for?",
+  transcriber: {
+    provider: "deepgram",
+    model: "nova-2",
+    language: "en",
+  },
+  voice: {
+    provider: "11labs",
+    voiceId: "sarah",
+    stability: 0.4,
+    similarityBoost: 0.8,
+    speed: 0.9,
+    style: 0.5,
+    useSpeakerBoost: true,
+  },
+  model: {
+    provider: "openai",
+    model: "gpt-4",
+    messages: [
+      {
+        role: "system",
+        content: `You are an AI assistant helping set up a mock job interview. Collect the following from the user one at a time:
+1. Job role (e.g. Frontend Developer)
+2. Experience level: Junior, Mid, or Senior
+3. Interview type: Technical, Behavioral, or Mixed
+4. Tech stack (comma-separated, e.g. React, Node.js)
+5. Number of questions (between 3 and 10)
+
+Once you have all five, confirm them with the user, then call the generateInterview function.
+Keep responses short and friendly. Ask one question at a time.`,
+      },
+    ],
+    tools: [
+      {
+        type: "function",
+        function: {
+          name: "generateInterview",
+          description:
+            "Call this once all interview details are confirmed by the user.",
+          parameters: {
+            type: "object",
+            properties: {
+              role: { type: "string" },
+              level: { type: "string", enum: ["Junior", "Mid", "Senior"] },
+              type: {
+                type: "string",
+                enum: ["Technical", "Behavioral", "Mixed"],
+              },
+              techstack: { type: "string" },
+              amount: { type: "number" },
+              userid: { type: "string" },
+            },
+            required: [
+              "role",
+              "level",
+              "type",
+              "techstack",
+              "amount",
+              "userid",
+            ],
+          },
+        },
+        server: {
+          url: `${process.env.NEXT_PUBLIC_APP_URL}/api/vapi/generate`,
+        },
+      },
+    ],
+  },
+};
+
 export const feedbackSchema = z.object({
   totalScore: z.number(),
   categoryScores: z.tuple([

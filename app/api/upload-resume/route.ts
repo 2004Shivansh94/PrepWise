@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 const pdfParse = require("pdf-parse");
-import { generateObject } from "ai";
-import { google } from "@ai-sdk/google";
+import { generateText } from "ai";
+import { groq } from "@ai-sdk/groq";
 import { z } from "zod";
 
 export async function POST(req: Request) {
@@ -20,12 +20,9 @@ export async function POST(req: Request) {
     const data = await pdfParse(buffer);
     const resumeText = data.text;
 
-    // Generate questions using Gemini
-    const { object } = await generateObject({
-      model: google("gemini-2.0-flash-001"),
-      schema: z.object({
-        questions: z.array(z.string()).min(5).max(8),
-      }),
+    // Generate questions using Groq
+    const { text } = await generateText({
+      model: groq("llama-3.3-70b-versatile"),
       prompt: `
         Analyze the following resume text and generate professional interview questions 
         based on the candidate's skills, projects, technologies, and experience mentioned.
@@ -33,12 +30,23 @@ export async function POST(req: Request) {
         Resume Text:
         ${resumeText}
         
-        Provide the output purely as a list of questions without any conversational filler.
+        You MUST return ONLY a raw JSON array of 5 to 8 strings. 
+        Example: ["Question 1", "Question 2", "Question 3", "Question 4", "Question 5"]
+        Do not return markdown, backticks, or any conversational filler. Return just the raw JSON array.
       `,
       system: "You are an expert technical interviewer tasked with creating tailored interview questions based on a candidate's resume.",
     });
 
-    return NextResponse.json({ questions: object.questions });
+    let questions;
+    try {
+      questions = JSON.parse(text.trim().replace(/^```json/, '').replace(/```$/, ''));
+    } catch (e) {
+      // Fallback extraction
+      const match = text.match(/\[.*\]/s);
+      questions = match ? JSON.parse(match[0]) : [];
+    }
+
+    return NextResponse.json({ questions });
   } catch (error: any) {
     console.error("Error processing resume:", error);
     return NextResponse.json(
