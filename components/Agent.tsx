@@ -300,7 +300,7 @@ const Agent = ({
 
         <div className="card-border">
           <div className="card-content flex flex-col items-center justify-center" style={{ gap: "1rem" }}>
-            <div className="relative flex items-center justify-center size-[120px]">
+            <div className="relative flex items-center justify-center size-[120px] max-sm:size-[90px]">
               <Image
                 src="/user-avatar.png"
                 alt="profile-image"

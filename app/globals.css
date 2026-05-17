@@ -216,11 +216,11 @@
     }
 
     .card-interviewer {
-      @apply flex-center flex-col gap-2 p-7 h-[400px] blue-gradient-dark rounded-xl border border-primary-200/20 shadow-[0_0_30px_rgba(6,182,212,0.05)] flex-1 sm:basis-1/2 w-full;
+      @apply flex-center flex-col gap-2 p-7 h-[400px] max-sm:h-[320px] blue-gradient-dark rounded-xl border border-primary-200/20 shadow-[0_0_30px_rgba(6,182,212,0.05)] flex-1 sm:basis-1/2 w-full;
     }
 
     .avatar {
-      @apply z-10 flex items-center justify-center blue-gradient rounded-full size-[120px] relative;
+      @apply z-10 flex items-center justify-center blue-gradient rounded-full size-[120px] max-sm:size-[90px] relative;
 
       .animate-speak {
         @apply absolute inline-flex size-5/6 animate-ping rounded-full bg-primary-200 opacity-75 shadow-[0_0_20px_rgba(6,182,212,0.6)];
@@ -228,11 +228,11 @@
     }
 
     .card-border {
-      @apply bg-gradient-to-br from-primary-200/30 to-transparent p-[1px] rounded-2xl flex-1 sm:basis-1/2 w-full h-[400px] max-md:hidden shadow-[0_0_15px_rgba(6,182,212,0.05)];
+      @apply bg-gradient-to-br from-primary-200/30 to-transparent p-[1px] rounded-2xl flex-1 sm:basis-1/2 w-full h-[400px] max-sm:h-[320px] shadow-[0_0_15px_rgba(6,182,212,0.05)];
     }
 
     .card-content {
-      @apply flex flex-col gap-2 justify-center items-center p-7 bg-dark-200/80 backdrop-blur-md rounded-2xl min-h-full;
+      @apply flex flex-col gap-2 justify-center items-center p-7 max-sm:p-5 bg-dark-200/80 backdrop-blur-md rounded-2xl min-h-full;
     }
   }
 

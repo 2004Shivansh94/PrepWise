@@ -22,7 +22,7 @@ export default function InterviewSelector({
 
   return (
     <div className="flex flex-col gap-8 items-center w-full mt-4">
-      <div className="flex gap-4 p-2 bg-dark-200 rounded-lg w-fit">
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 p-2 bg-dark-200 rounded-lg w-full sm:w-fit max-w-[90vw]">
         <Button
           variant={mode === "standard" ? "default" : "ghost"}
           onClick={() => setMode("standard")}

@@ -26,8 +26,8 @@ const InterviewDetails = async ({ params }: RouteParams) => {
 
   return (
     <>
-      <div className="flex flex-row gap-4 justify-between">
-        <div className="flex flex-row gap-4 items-center max-sm:flex-col">
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
           <div className="flex flex-row gap-4 items-center">
             <Image
               src={getRandomInterviewCover()}
@@ -42,7 +42,7 @@ const InterviewDetails = async ({ params }: RouteParams) => {
           <DisplayTechIcons techStack={interview.techstack} />
         </div>
 
-        <p className="bg-dark-200 px-4 py-2 rounded-lg h-fit">
+        <p className="bg-dark-200 px-4 py-2 rounded-lg h-fit text-sm font-semibold max-sm:self-start">
           {interview.type}
         </p>
       </div>

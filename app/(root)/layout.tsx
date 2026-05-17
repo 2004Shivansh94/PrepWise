@@ -31,16 +31,16 @@ const Layout = async ({ children }: { children: ReactNode }) => {
         <div className="nav-profile">
           <div className="profile-chip">
             <UserCircle className="size-9 text-primary-200" />
-            <div>
+            <div className="hidden sm:block">
               <p className="profile-name">{user.name}</p>
               <p className="profile-email">{user.email}</p>
             </div>
           </div>
 
           <form action={handleLogout}>
-            <Button type="submit" className="btn-secondary">
+            <Button type="submit" className="btn-secondary flex items-center gap-2 px-3 sm:px-4">
               <LogOut className="size-4" />
-              Log out
+              <span className="hidden sm:inline">Log out</span>
             </Button>
           </form>
         </div>

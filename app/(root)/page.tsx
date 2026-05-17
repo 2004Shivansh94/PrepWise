@@ -106,11 +106,11 @@ async function Home() {
           <div className="flex items-center gap-2">
             <span style={{ color: "#4ade80" }}>✓</span> Free to start
           </div>
-          <div className="w-px h-4" style={{ background: "rgba(255,255,255,0.1)" }} />
+          <div className="hidden sm:block w-px h-4" style={{ background: "rgba(255,255,255,0.1)" }} />
           <div className="flex items-center gap-2">
             <span style={{ color: "#4ade80" }}>✓</span> AI voice interviewer
           </div>
-          <div className="w-px h-4" style={{ background: "rgba(255,255,255,0.1)" }} />
+          <div className="hidden sm:block w-px h-4" style={{ background: "rgba(255,255,255,0.1)" }} />
           <div className="flex items-center gap-2">
             <span style={{ color: "#4ade80" }}>✓</span> Instant feedback
           </div>
