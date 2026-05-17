@@ -1,6 +1,20 @@
 import { CreateAssistantDTO } from "@vapi-ai/web/dist/api";
 import { z } from "zod";
 
+// NOTE: Ensure your Interview interface is imported here if it's defined elsewhere
+// import { Interview } from "@/types"; 
+export interface Interview {
+  id: string;
+  userId: string;
+  role: string;
+  type: string;
+  techstack: string[];
+  level: string;
+  questions: string[];
+  finalized: boolean;
+  createdAt: string;
+}
+
 export const mappings = {
   "react.js": "react",
   reactjs: "react",
@@ -146,7 +160,6 @@ Thank the candidate for their time.
 Inform them that the company will reach out soon with feedback.
 End the conversation on a polite and positive note.
 
-
 - Be sure to be professional and polite.
 - Keep all your responses short and simple. Use official language, but be kind and welcoming.
 - This is a voice conversation, so keep your responses short, like in a real conversation. Don't ramble for too long.`,
@@ -179,15 +192,21 @@ export const generateInterviewer: CreateAssistantDTO = {
     messages: [
       {
         role: "system",
-        content: `You are an AI assistant helping set up a mock job interview. Collect the following from the user one at a time:
-1. Job role (e.g. Frontend Developer)
-2. Experience level: Junior, Mid, or Senior
-3. Interview type: Technical, Behavioral, or Mixed
-4. Tech stack (comma-separated, e.g. React, Node.js)
-5. Number of questions (between 3 and 10)
+        content: `You are a helpful AI assistant setting up a personalized mock job interview. Collect the following 5 pieces of information from the user, exactly one at a time:
 
-Once you have all five, confirm them with the user, then call the generateInterview function.
-Keep responses short and friendly. Ask one question at a time.`,
+1. Job Role: (e.g., Frontend Developer, Data Analyst, Product Manager).
+2. Experience Level: Must be strictly one of these options: Junior, Mid, or Senior.
+3. Interview Type: Must be strictly one of these options: Technical, Behavioral, or Mixed.
+4. Core Tools/Technologies: If it is a technical role, ask for their tech stack (e.g., React, Node.js). If it is a non-technical or analyst role, ask for their core tools or skills (e.g., SQL, Excel, Tableau). If they chose a purely "Behavioral" interview type, let them know they can say "None" or "Skip".
+5. Number of Questions: A number between 3 and 10.
+
+GUARDRAILS & VALIDATION:
+- Keep your responses short, encouraging, and friendly.
+- Ask exactly ONE question at a time. Never bundle questions together.
+- If the user provides an invalid input (e.g., asking for 15 questions, or an experience level that is not Junior, Mid, or Senior), politely explain the constraint and ask them to choose again.
+
+CONCLUSION:
+Once you have successfully collected all 5 valid pieces of information, present a neat summary to the user to confirm everything is correct. Once confirmed, immediately execute the generateInterview function using the collected parameters.`,
       },
     ],
     tools: [

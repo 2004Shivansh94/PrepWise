@@ -84,7 +84,7 @@ async function Home() {
               Start AI Interview
             </button>
           </Link>
-          <Link href="/interview">
+          <Link href="/interview?mode=resume">
             <button
               className="px-8 py-3 rounded-full font-medium text-sm transition-all hover:-translate-y-0.5"
               style={{

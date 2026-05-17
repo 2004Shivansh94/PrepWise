@@ -33,14 +33,21 @@ const Agent = ({
   const [callStatus, setCallStatus] = useState<CallStatus>(CallStatus.INACTIVE);
   const [messages, setMessages] = useState<SavedMessage[]>([]);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isBargingIn, setIsBargingIn] = useState(false);
   const [lastMessage, setLastMessage] = useState<string>("");
 
-  // Refs for Web Audio API and Canvas
+  // Refs for Web Audio API, Canvas, and state tracking
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const animationRef = useRef<number | null>(null);
+
+  // Sync isSpeaking state to a Ref so the high-performance Web Audio draw loop can access it
+  const isSpeakingRef = useRef(isSpeaking);
+  useEffect(() => {
+    isSpeakingRef.current = isSpeaking;
+  }, [isSpeaking]);
 
   useEffect(() => {
     const onCallStart = () => setCallStatus(CallStatus.ACTIVE);
@@ -107,7 +114,7 @@ const Agent = ({
     }
   }, [messages, callStatus, feedbackId, interviewId, router, type, userId]);
 
-  // Audio visualizer loop
+  // Audio visualizer and barge-in detection loop
   useEffect(() => {
     if (callStatus === CallStatus.ACTIVE) {
       let audioCtx: AudioContext | null = null;
@@ -143,6 +150,18 @@ const Agent = ({
                 animationRef.current = requestAnimationFrame(draw);
 
                 analyserRef.current.getByteFrequencyData(dataArray);
+
+                // Calculate average volume to check for Barge-In Interruption
+                let sum = 0;
+                for (let i = 0; i < bufferLength; i++) {
+                  sum += dataArray[i];
+                }
+                const averageVolume = sum / bufferLength;
+
+                // Threshold gate (average volume above background noise)
+                const isUserSpeaking = averageVolume > 15;
+                // Barge-in active if user speaks while Assistant isSpeaking is active
+                setIsBargingIn(isUserSpeaking && isSpeakingRef.current);
 
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -189,6 +208,8 @@ const Agent = ({
       initAudio();
 
       return () => {
+        setIsBargingIn(false);
+
         if (animationRef.current !== null) {
           cancelAnimationFrame(animationRef.current);
           animationRef.current = null;
@@ -250,7 +271,13 @@ const Agent = ({
   return (
     <>
       <div className="call-view">
-        <div className="card-interviewer">
+        <div 
+          className={cn(
+            "card-interviewer transition-all duration-300 relative",
+            isBargingIn && "border-amber-500/80 shadow-[0_0_20px_rgba(245,158,11,0.4)]"
+          )}
+          style={isBargingIn ? { border: "1.5px solid rgba(245, 158, 11, 0.8)", boxShadow: "0 0 20px rgba(245, 158, 11, 0.35)" } : undefined}
+        >
           <div className="avatar">
             <Image
               src="/ai-avatar.png"
@@ -261,7 +288,14 @@ const Agent = ({
             />
             {isSpeaking && <span className="animate-speak" />}
           </div>
-          <h3>AI Interviewer</h3>
+          <div className="flex flex-col gap-0.5">
+            <h3>AI Interviewer</h3>
+            {isBargingIn && (
+              <span className="text-[10px] font-semibold text-amber-400 animate-pulse uppercase tracking-wider">
+                ⚠ Interrupted / Listening...
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="card-border">
