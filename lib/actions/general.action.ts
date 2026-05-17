@@ -55,7 +55,7 @@ export async function createFeedback(params: CreateFeedbackParams) {
     try {
       object = JSON.parse(text.trim().replace(/^```json/, '').replace(/```$/, ''));
     } catch (e) {
-      const match = text.match(/\{.*\}/s);
+      const match = text.match(/\{[\s\S]*\}/);
       object = match ? JSON.parse(match[0]) : {};
     }
 
@@ -124,7 +124,13 @@ export async function getLatestInterviews(
     .limit(limit)
     .get();
 
-  return interviews.docs.map((doc) => ({
+  // Filter out resume-based interviews — they are personal to each user
+  const filtered = interviews.docs.filter((doc) => {
+    const data = doc.data();
+    return !data.resumeBased;
+  });
+
+  return filtered.map((doc) => ({
     id: doc.id,
     ...doc.data(),
   })) as Interview[];
@@ -150,11 +156,20 @@ export async function createResumeInterview(
 ) {
   try {
     const newInterviewRef = db.collection("interviews").doc();
+
+    // Map interview type value to a display label
+    const typeLabel =
+      params.interviewType === "technical"
+        ? "Technical"
+        : params.interviewType === "behavioral"
+          ? "Behavioral"
+          : "Mixed";
+
     const interviewData = {
       role: "Resume Based",
       level: "Varied",
-      type: "Technical",
-      techstack: ["React", "Next.js", "Node.js", "Firebase", "Other"],
+      type: typeLabel,
+      techstack: ["Resume", "Custom"],
       questions: params.questions,
       createdAt: new Date().toISOString(),
       userId: params.userId,

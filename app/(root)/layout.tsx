@@ -20,11 +20,13 @@ const Layout = async ({ children }: { children: ReactNode }) => {
 
   return (
     <div className="root-layout">
-      <nav className="app-nav">
-        <Link href="/" className="flex shrink-0 items-center gap-2">
-          <Image src="/logo.svg" alt="MockMate Logo" width={38} height={32} />
-          <h2 className="text-primary-100">PrepWise</h2>
-        </Link>
+      <header className="flex w-full items-center justify-between gap-4">
+        <nav className="app-nav">
+          <Link href="/" className="flex shrink-0 items-center gap-2">
+            <Image src="/logo.svg" alt="MockMate Logo" width={38} height={32} />
+            <h2 className="text-primary-100">PrepWise</h2>
+          </Link>
+        </nav>
 
         <div className="nav-profile">
           <div className="profile-chip">
@@ -42,7 +44,7 @@ const Layout = async ({ children }: { children: ReactNode }) => {
             </Button>
           </form>
         </div>
-      </nav>
+      </header>
 
       {children}
     </div>

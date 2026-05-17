@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
@@ -34,6 +34,13 @@ const Agent = ({
   const [messages, setMessages] = useState<SavedMessage[]>([]);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [lastMessage, setLastMessage] = useState<string>("");
+
+  // Refs for Web Audio API and Canvas
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const animationRef = useRef<number | null>(null);
 
   useEffect(() => {
     const onCallStart = () => setCallStatus(CallStatus.ACTIVE);
@@ -100,6 +107,115 @@ const Agent = ({
     }
   }, [messages, callStatus, feedbackId, interviewId, router, type, userId]);
 
+  // Audio visualizer loop
+  useEffect(() => {
+    if (callStatus === CallStatus.ACTIVE) {
+      let audioCtx: AudioContext | null = null;
+      let analyserNode: AnalyserNode | null = null;
+      let micStream: MediaStream | null = null;
+      let sourceNode: MediaStreamAudioSourceNode | null = null;
+
+      const initAudio = async () => {
+        try {
+          micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          streamRef.current = micStream;
+
+          const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+          audioCtx = new AudioContextClass();
+          audioContextRef.current = audioCtx;
+
+          analyserNode = audioCtx.createAnalyser();
+          analyserNode.fftSize = 64; // smaller FFT size for smooth responsive bars
+          analyserRef.current = analyserNode;
+
+          sourceNode = audioCtx.createMediaStreamSource(micStream);
+          sourceNode.connect(analyserNode);
+
+          if (canvasRef.current) {
+            const canvas = canvasRef.current;
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+              const bufferLength = analyserNode.frequencyBinCount;
+              const dataArray = new Uint8Array(bufferLength);
+
+              const draw = () => {
+                if (!canvasRef.current || !analyserRef.current) return;
+                animationRef.current = requestAnimationFrame(draw);
+
+                analyserRef.current.getByteFrequencyData(dataArray);
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                const barCount = 18;
+                const barWidth = canvas.width / barCount;
+
+                const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+                gradient.addColorStop(0, "#6366f1"); // Indigo
+                gradient.addColorStop(0.5, "#06b6d4"); // Cyan
+                gradient.addColorStop(1, "#8b5cf6"); // Violet
+
+                ctx.fillStyle = gradient;
+
+                for (let i = 0; i < barCount; i++) {
+                  const distFromCenter = Math.abs(i - barCount / 2);
+                  const dataIndex = Math.min(
+                    bufferLength - 1,
+                    Math.floor(distFromCenter * (bufferLength / (barCount / 2)) * 0.7)
+                  );
+                  const value = dataArray[dataIndex] || 0;
+                  const barHeight = Math.max(3, (value / 255) * canvas.height * 0.85);
+
+                  const x = i * barWidth + (barWidth - 4) / 2;
+                  const y = (canvas.height - barHeight) / 2;
+
+                  ctx.beginPath();
+                  if (ctx.roundRect) {
+                    ctx.roundRect(x, y, 4, barHeight, 2);
+                  } else {
+                    ctx.rect(x, y, 4, barHeight);
+                  }
+                  ctx.fill();
+                }
+              };
+
+              draw();
+            }
+          }
+        } catch (err) {
+          console.error("Error accessing microphone for visualizer:", err);
+        }
+      };
+
+      initAudio();
+
+      return () => {
+        if (animationRef.current !== null) {
+          cancelAnimationFrame(animationRef.current);
+          animationRef.current = null;
+        }
+
+        if (sourceNode) {
+          sourceNode.disconnect();
+        }
+        if (analyserRef.current) {
+          analyserRef.current.disconnect();
+          analyserRef.current = null;
+        }
+        if (audioContextRef.current) {
+          if (audioContextRef.current.state !== "closed") {
+            audioContextRef.current.close().catch((err) => console.log(err));
+          }
+          audioContextRef.current = null;
+        }
+
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach((track) => track.stop());
+          streamRef.current = null;
+        }
+      };
+    }
+  }, [callStatus]);
+
   const handleCall = async () => {
     setCallStatus(CallStatus.CONNECTING);
 
@@ -149,15 +265,33 @@ const Agent = ({
         </div>
 
         <div className="card-border">
-          <div className="card-content">
-            <Image
-              src="/user-avatar.png"
-              alt="profile-image"
-              width={539}
-              height={539}
-              className="rounded-full object-cover size-[120px]"
-            />
-            <h3>{userName}</h3>
+          <div className="card-content flex flex-col items-center justify-center" style={{ gap: "1rem" }}>
+            <div className="relative flex items-center justify-center size-[120px]">
+              <Image
+                src="/user-avatar.png"
+                alt="profile-image"
+                width={539}
+                height={539}
+                className={cn(
+                  "rounded-full object-cover size-full transition-all duration-500 relative z-10",
+                  callStatus === CallStatus.ACTIVE && "ring-4 ring-indigo-500/20 scale-105"
+                )}
+              />
+              {callStatus === CallStatus.ACTIVE && (
+                <span className="absolute inset-0 rounded-full animate-ping bg-indigo-500/10 opacity-75" />
+              )}
+            </div>
+
+            {callStatus === CallStatus.ACTIVE && (
+              <canvas
+                ref={canvasRef}
+                width={140}
+                height={32}
+                className="opacity-90 transition-opacity duration-300"
+              />
+            )}
+
+            <h3 style={{ margin: 0 }}>{userName}</h3>
           </div>
         </div>
       </div>

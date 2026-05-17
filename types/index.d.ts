@@ -36,6 +36,8 @@ interface CreateFeedbackParams {
 interface CreateResumeInterviewParams {
   userId: string;
   questions: string[];
+  interviewType: string;
+  questionCount: number;
 }
 
 interface User {
@@ -51,6 +53,8 @@ interface InterviewCardProps {
   type: string;
   techstack: string[];
   createdAt?: string;
+  level?: string;
+  questionsCount?: number;
 }
 
 interface AgentProps {

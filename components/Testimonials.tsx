@@ -4,45 +4,126 @@ const testimonials = [
   {
     name: "Aman Sharma",
     role: "Frontend Developer",
-    text: "PrepWise helped me practice real interview questions and boosted my confidence.",
+    company: "Hired at Razorpay",
+    initials: "AS",
+    color: "#6366f1",
+    rating: 5,
+    text: "PrepWise completely changed how I prepare for interviews. The AI interviewer felt surprisingly real and the feedback was brutally honest — exactly what I needed.",
   },
   {
     name: "Neha Verma",
     role: "Software Engineer",
-    text: "The AI interviewer feels like a real interview.",
+    company: "Hired at Swiggy",
+    initials: "NV",
+    color: "#8b5cf6",
+    rating: 5,
+    text: "The AI interviewer asks follow-up questions just like a real interviewer would. I went into my actual interview feeling way more confident.",
   },
   {
     name: "Rohit Singh",
     role: "CS Student",
-    text: "The resume-based interview feature asks questions directly from my projects.",
+    company: "Placed at TCS",
+    initials: "RS",
+    color: "#06b6d4",
+    rating: 5,
+    text: "The resume-based interview feature is incredible. It asked questions directly from my projects and gave me feedback I could act on immediately.",
   },
 ];
 
+const Stars = ({ count }: { count: number }) => (
+  <div className="flex gap-0.5">
+    {Array.from({ length: count }).map((_, i) => (
+      <span key={i} style={{ color: "#fbbf24", fontSize: "13px" }}>★</span>
+    ))}
+  </div>
+);
+
 const Testimonials = () => {
   return (
-    <section className="flex flex-col gap-6 mt-20">
-      <h2 className="text-3xl md:text-4xl font-bold text-center mb-10 text-transparent bg-clip-text bg-gradient-to-r from-white to-neutral-400">
-        Loved by Students & Developers
-      </h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {testimonials.map((testimonial, index) => (
+    <section className="flex flex-col gap-8 px-2">
+      {/* Header */}
+      <div className="flex flex-col items-center text-center gap-3">
+        <div
+          className="px-4 py-1.5 rounded-full text-sm font-medium"
+          style={{
+            background: "rgba(99,102,241,0.08)",
+            border: "0.5px solid rgba(99,102,241,0.2)",
+            color: "#a5b4fc",
+          }}
+        >
+          Success stories
+        </div>
+        <h2
+          className="text-3xl md:text-4xl font-bold tracking-tight"
+          style={{ color: "#f1f5f9" }}
+        >
+          Loved by developers
+        </h2>
+        <p
+          className="text-base max-w-md leading-relaxed"
+          style={{ color: "rgba(255,255,255,0.4)" }}
+        >
+          Join thousands of developers who used PrepWise to land their dream jobs.
+        </p>
+      </div>
+
+      {/* Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {testimonials.map((t, index) => (
           <div
             key={index}
-            className="flex flex-col p-8 rounded-2xl border border-neutral-800/50 bg-neutral-900/40 hover:bg-neutral-800/60 hover:border-neutral-700 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(255,255,255,0.03)] transition-all duration-300 group relative overflow-hidden"
+            className="group relative flex flex-col gap-4 p-6 rounded-2xl transition-all duration-300 hover:-translate-y-1 overflow-hidden"
+            style={{
+              background: "rgba(255,255,255,0.02)",
+              border: "0.5px solid rgba(255,255,255,0.08)",
+            }}
           >
-            {/* Top gradient accent block on hover */}
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            {/* Glow on hover */}
+            <div
+              className="absolute top-0 left-0 w-32 h-32 rounded-full opacity-0 group-hover:opacity-10 blur-2xl pointer-events-none transition-opacity duration-300"
+              style={{ background: t.color }}
+            />
 
-            <p className="text-neutral-300 italic mb-8 flex-grow leading-relaxed z-10">
-              "{testimonial.text}"
+            {/* Stars */}
+            <Stars count={t.rating} />
+
+            {/* Quote */}
+            <p
+              className="text-sm leading-relaxed flex-grow"
+              style={{ color: "rgba(255,255,255,0.55)" }}
+            >
+              &ldquo;{t.text}&rdquo;
             </p>
-            <div className="flex flex-col">
-              <span className="font-bold text-white group-hover:text-blue-400 transition-colors">
-                {testimonial.name}
-              </span>
-              <span className="text-sm text-neutral-500">
-                {testimonial.role}
-              </span>
+
+            {/* Divider */}
+            <div
+              className="w-full h-px"
+              style={{ background: "rgba(255,255,255,0.06)" }}
+            />
+
+            {/* Author */}
+            <div className="flex items-center gap-3">
+              <div
+                className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                style={{
+                  background: `${t.color}20`,
+                  border: `0.5px solid ${t.color}40`,
+                  color: t.color,
+                }}
+              >
+                {t.initials}
+              </div>
+              <div>
+                <p
+                  className="text-sm font-semibold"
+                  style={{ color: "#f1f5f9" }}
+                >
+                  {t.name}
+                </p>
+                <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
+                  {t.role} · {t.company}
+                </p>
+              </div>
             </div>
           </div>
         ))}
