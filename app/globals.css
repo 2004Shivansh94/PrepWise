@@ -321,7 +321,7 @@
   }
 
   .app-nav {
-    @apply flex w-fit items-center rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-md px-5 py-3 shadow-[0_4px_30px_rgba(0,0,0,0.1)];
+    @apply flex shrink-0 w-fit items-center rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-md px-5 py-3 shadow-[0_4px_30px_rgba(0,0,0,0.1)];
   }
 
   .nav-profile {
@@ -329,7 +329,7 @@
   }
 
   .profile-chip {
-    @apply flex min-w-0 items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-md px-4 py-2 shadow-[0_4px_30px_rgba(0,0,0,0.1)];
+    @apply flex shrink-0 min-w-0 items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-md px-4 py-2 shadow-[0_4px_30px_rgba(0,0,0,0.1)];
   }
 
   .profile-name {
