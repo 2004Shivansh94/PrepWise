@@ -419,3 +419,48 @@
 @utility badge {
   @apply px-3 py-1 rounded-full border border-primary-200/20 bg-primary-200/10 text-primary-200 text-xs font-semibold uppercase tracking-wider;
 }
+
+@utility animate-float-slow {
+  animation: float-slow 22s infinite ease-in-out;
+}
+
+@utility animate-float-medium {
+  animation: float-medium 16s infinite ease-in-out;
+}
+
+@utility animate-float-reverse {
+  animation: float-reverse 19s infinite ease-in-out;
+}
+
+@keyframes float-slow {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(30px, -50px, 0) scale(1.08);
+  }
+  66% {
+    transform: translate3d(-20px, 20px, 0) scale(0.95);
+  }
+}
+
+@keyframes float-medium {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-40px, 40px, 0) scale(1.12);
+  }
+}
+
+@keyframes float-reverse {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  40% {
+    transform: translate3d(40px, 30px, 0) scale(0.92);
+  }
+  80% {
+    transform: translate3d(-30px, -30px, 0) scale(1.04);
+  }
+}
