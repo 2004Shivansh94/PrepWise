@@ -102,12 +102,6 @@ const InterviewCard = async ({
               )}
             </div>
           )}
-
-          {/* Feedback or Placeholder Text */}
-          <p className="line-clamp-2 mt-5">
-            {feedback?.finalAssessment ||
-              "You haven't taken this interview yet. Take it now to improve your skills."}
-          </p>
         </div>
 
         <div className="flex flex-row justify-between">

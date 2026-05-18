@@ -46,21 +46,21 @@ export default async function DashboardPage() {
     ...missingInterviews.filter((i): i is Interview => i !== null)
   ];
 
-  // 1. Calculate stats metrics
-  const totalInterviews = allInterviews.length;
+  // 1. Calculate stats metrics based on completed sessions (feedbacks)
+  const totalInterviews = safeFeedbacks.length;
   
-  const avgScore = totalInterviews > 0 && safeFeedbacks.length > 0
+  const avgScore = totalInterviews > 0
     ? Math.round(safeFeedbacks.reduce((acc, f) => acc + f.totalScore, 0) / safeFeedbacks.length)
     : 0;
 
-  const totalSpeakingTime = totalInterviews * 15; // Estimate 15 mins per session
+  const totalSpeakingTime = totalInterviews * 15; // Estimate 15 mins per completed session
 
-  // Dynamic practice streak calculator (based on unique interview dates)
+  // Dynamic practice streak calculator (based on unique completed feedback dates)
   const calculateStreak = () => {
     if (totalInterviews === 0) return 0;
     
-    const dates = allInterviews.map(i => 
-      new Date(i.createdAt).toDateString()
+    const dates = safeFeedbacks.map(f => 
+      new Date(f.createdAt).toDateString()
     );
     const uniqueDates = Array.from(new Set(dates)).map(d => new Date(d));
     uniqueDates.sort((a, b) => b.getTime() - a.getTime()); // Sort descending (newest first)
