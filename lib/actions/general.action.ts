@@ -88,9 +88,10 @@ export async function createFeedback(params: CreateFeedbackParams) {
 }
 
 export async function getInterviewById(id: string): Promise<Interview | null> {
-  const interview = await db.collection("interviews").doc(id).get();
+  const doc = await db.collection("interviews").doc(id).get();
+  if (!doc.exists) return null;
 
-  return interview.data() as Interview | null;
+  return { id: doc.id, ...doc.data() } as Interview;
 }
 
 export async function getFeedbackByInterviewId(

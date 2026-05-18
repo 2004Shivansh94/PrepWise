@@ -15,7 +15,8 @@ import {
 import { getCurrentUser } from "@/lib/actions/auth.action";
 import { 
   getInterviewsByUserId, 
-  getFeedbackByUserId 
+  getFeedbackByUserId,
+  getInterviewById
 } from "@/lib/actions/general.action";
 import DashboardCharts from "@/components/DashboardCharts";
 
@@ -23,16 +24,30 @@ export default async function DashboardPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/sign-in");
 
-  const [interviews, feedbacks] = await Promise.all([
-    getInterviewsByUserId(user.id),
-    getFeedbackByUserId(user.id),
-  ]);
-
-  const safeInterviews = interviews || [];
+  // Fetch feedbacks first to know all interview IDs the user interacted with
+  const feedbacks = await getFeedbackByUserId(user.id);
   const safeFeedbacks = feedbacks || [];
 
+  // Fetch user's own created interviews
+  const userInterviews = await getInterviewsByUserId(user.id) || [];
+
+  // Fetch any missing interviews (e.g. public interviews taken by the user)
+  const feedbackInterviewIds = Array.from(new Set(safeFeedbacks.map(f => f.interviewId)));
+  const existingIds = new Set(userInterviews.map(i => i.id));
+  const missingIds = feedbackInterviewIds.filter(id => !existingIds.has(id));
+
+  const missingInterviews = await Promise.all(
+    missingIds.map(id => getInterviewById(id))
+  );
+
+  // Combine both user-created interviews and explored interviews taken by the user
+  const allInterviews = [
+    ...userInterviews,
+    ...missingInterviews.filter((i): i is Interview => i !== null)
+  ];
+
   // 1. Calculate stats metrics
-  const totalInterviews = safeInterviews.length;
+  const totalInterviews = allInterviews.length;
   
   const avgScore = totalInterviews > 0 && safeFeedbacks.length > 0
     ? Math.round(safeFeedbacks.reduce((acc, f) => acc + f.totalScore, 0) / safeFeedbacks.length)
@@ -44,7 +59,7 @@ export default async function DashboardPage() {
   const calculateStreak = () => {
     if (totalInterviews === 0) return 0;
     
-    const dates = safeInterviews.map(i => 
+    const dates = allInterviews.map(i => 
       new Date(i.createdAt).toDateString()
     );
     const uniqueDates = Array.from(new Set(dates)).map(d => new Date(d));
@@ -88,7 +103,7 @@ export default async function DashboardPage() {
 
   // Create a mapping of interviewId to target role for recent feedback table mapping
   const interviewRoles: Record<string, string> = {};
-  safeInterviews.forEach((i) => {
+  allInterviews.forEach((i) => {
     interviewRoles[i.id] = i.role;
   });
 
