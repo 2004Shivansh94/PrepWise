@@ -88,7 +88,7 @@ export default function UserDropdown({ user, onLogout }: UserDropdownProps) {
           <div className="flex flex-col gap-0.5 px-2">
             {/* Dashboard Option */}
             <Link
-              href="/"
+              href="/dashboard"
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-white/70 hover:text-white hover:bg-white/[0.05] transition-all duration-200"
             >

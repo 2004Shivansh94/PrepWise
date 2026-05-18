@@ -185,3 +185,25 @@ export async function createResumeInterview(
     return { success: false };
   }
 }
+
+export async function getFeedbackByUserId(userId: string): Promise<Feedback[] | null> {
+  try {
+    const feedbackSnapshot = await db
+      .collection("feedback")
+      .where("userId", "==", userId)
+      .get();
+
+    const feedbacks = feedbackSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Feedback[];
+
+    // In-memory sort by createdAt asc to avoid composite index requirements
+    return feedbacks.sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+  } catch (error) {
+    console.error("Error fetching feedback by userId:", error);
+    return null;
+  }
+}
