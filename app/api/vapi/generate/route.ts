@@ -8,7 +8,14 @@ export async function POST(request: Request) {
 
   // Vapi sends tool calls inside message.toolCallList
   const toolCall = body?.message?.toolCallList?.[0];
-  const args = toolCall?.function?.arguments ?? body;
+  let args = toolCall?.function?.arguments ?? body;
+  if (typeof args === "string") {
+    try {
+      args = JSON.parse(args);
+    } catch (e) {
+      console.error("Failed to parse tool call arguments");
+    }
+  }
 
   const { role, level, type, techstack, amount, userid } = args;
 
