@@ -26,14 +26,14 @@ async function Home() {
       {/* Hero */}
       <section className="relative flex flex-col items-center text-center gap-6 py-20 px-4 overflow-hidden">
         {/* Background orbs */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full opacity-[0.07] blur-3xl pointer-events-none"
-          style={{ background: "radial-gradient(circle, #6366f1, transparent)" }}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full opacity-[0.20] blur-3xl pointer-events-none animate-float-slow"
+          style={{ background: "radial-gradient(circle, rgba(99,102,241,0.8), transparent 70%)" }}
         />
-        <div className="absolute top-20 left-1/4 w-[200px] h-[200px] rounded-full opacity-[0.04] blur-2xl pointer-events-none"
-          style={{ background: "radial-gradient(circle, #8b5cf6, transparent)" }}
+        <div className="absolute top-20 left-1/4 w-[400px] h-[400px] rounded-full opacity-[0.15] blur-3xl pointer-events-none animate-float-medium"
+          style={{ background: "radial-gradient(circle, rgba(139,92,246,0.8), transparent 70%)" }}
         />
-        <div className="absolute top-20 right-1/4 w-[200px] h-[200px] rounded-full opacity-[0.04] blur-2xl pointer-events-none"
-          style={{ background: "radial-gradient(circle, #06b6d4, transparent)" }}
+        <div className="absolute top-20 right-1/4 w-[400px] h-[400px] rounded-full opacity-[0.15] blur-3xl pointer-events-none animate-float-reverse"
+          style={{ background: "radial-gradient(circle, rgba(6,182,212,0.8), transparent 70%)" }}
         />
 
         {/* Badge */}
