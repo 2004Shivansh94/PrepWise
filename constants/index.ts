@@ -122,7 +122,7 @@ export const interviewer: CreateAssistantDTO = {
   },
   voice: {
     provider: "11labs",
-    voiceId: "sarah",
+    voiceId: "EXAVITQu4vr4xnSDxMaL",
     stability: 0.4,
     similarityBoost: 0.8,
     speed: 0.9,
@@ -179,7 +179,7 @@ export const generateInterviewer: CreateAssistantDTO = {
   },
   voice: {
     provider: "11labs",
-    voiceId: "sarah",
+    voiceId: "EXAVITQu4vr4xnSDxMaL",
     stability: 0.4,
     similarityBoost: 0.8,
     speed: 0.9,
@@ -206,7 +206,9 @@ GUARDRAILS & VALIDATION:
 - If the user provides an invalid input (e.g., asking for 15 questions, or an experience level that is not Junior, Mid, or Senior), politely explain the constraint and ask them to choose again.
 
 CONCLUSION:
-Once you have successfully collected all 5 valid pieces of information, present a neat summary to the user to confirm everything is correct. Once confirmed, immediately execute the generateInterview function using the collected parameters.`,
+Once you have successfully collected all 5 valid pieces of information, present a neat summary to the user to confirm everything is correct. Once confirmed, immediately execute the generateInterview function using the collected parameters. 
+
+IMPORTANT: The user's ID is {{userid}}. You MUST pass this exact userid in the "userid" parameter when calling the generateInterview function.`,
       },
     ],
     tools: [
