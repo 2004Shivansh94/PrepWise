@@ -60,15 +60,18 @@ export async function POST(req: Request) {
         "You are an expert technical interviewer tasked with creating tailored interview questions based on a candidate's resume. Follow the interview type instructions precisely.",
     });
 
-    let questions;
+    let questions = [];
     try {
-      questions = JSON.parse(
-        text.trim().replace(/^```json/, "").replace(/```$/, "")
-      );
+      const cleanText = text.trim().replace(/^```json\s*/i, "").replace(/\s*```$/i, "");
+      questions = JSON.parse(cleanText);
     } catch (e) {
-      // Fallback extraction
-      const match = text.match(/\[[\s\S]*\]/);
-      questions = match ? JSON.parse(match[0]) : [];
+      try {
+        const match = text.match(/\[[\s\S]*\]/);
+        questions = match ? JSON.parse(match[0]) : [];
+      } catch (fallbackError) {
+        console.error("Failed to parse extracted JSON:", text);
+        throw new Error("Invalid question format received from AI");
+      }
     }
 
     return NextResponse.json({ questions });

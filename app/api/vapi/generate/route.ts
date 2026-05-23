@@ -28,12 +28,25 @@ export async function POST(request: Request) {
         Thank you! <3`,
     });
 
+    let parsedQuestions = [];
+    try {
+      const match = questions.match(/\[[\s\S]*\]/);
+      if (match) {
+        parsedQuestions = JSON.parse(match[0]);
+      } else {
+        parsedQuestions = JSON.parse(questions);
+      }
+    } catch (parseError) {
+      console.error("Failed to parse questions array:", questions);
+      throw new Error("Invalid response format from AI");
+    }
+
     const interview = {
       role,
       type,
       level,
       techstack: techstack.split(",").map((t: string) => t.trim()),
-      questions: JSON.parse(questions),
+      questions: parsedQuestions,
       userId: userid,
       finalized: true,
       coverImage: getRandomInterviewCover(),
@@ -55,11 +68,18 @@ export async function POST(request: Request) {
       },
       { status: 200 }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error:", error);
     return Response.json(
-      { error: "Failed to generate interview" },
-      { status: 500 }
+      {
+        results: [
+          {
+            toolCallId: toolCall?.id,
+            result: `I'm sorry, I encountered an error while generating the interview questions: ${error.message}. Let's try again.`,
+          },
+        ],
+      },
+      { status: 200 }
     );
   }
 }
