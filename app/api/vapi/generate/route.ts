@@ -61,16 +61,8 @@ const getToolCall = (body: unknown): ToolCallPayload | undefined => {
 
 const parseToolArguments = (body: unknown) => {
   const toolCall = getToolCall(body);
-  const message = isRecord(body) ? getNestedRecord(body, "message") : undefined;
-  const functionCall = message
-    ? getNestedRecord(message, "functionCall")
-    : undefined;
 
-  let args =
-    toolCall?.function?.arguments ??
-    toolCall?.function?.parameters ??
-    functionCall?.parameters ??
-    body;
+  let args = toolCall?.function?.arguments ?? body;
 
   if (typeof args === "string") {
     args = JSON.parse(args);
@@ -118,7 +110,7 @@ const buildToolResponse = ({
         {
           toolCallId: toolCall.id,
           name: toolCall?.function?.name ?? "generateInterview",
-          ...(error ? { error } : { result }),
+          result: error || result,
         },
       ],
     },
