@@ -1,4 +1,4 @@
-import { generateObject } from "ai";
+import { generateText } from "ai";
 import { groq } from "@ai-sdk/groq";
 import { z } from "zod";
 import { db } from "@/firebase/admin";
@@ -13,9 +13,7 @@ const generateInterviewSchema = z.object({
   userid: z.string().trim().min(1, "User ID is required"),
 });
 
-const questionsSchema = z.object({
-  questions: z.array(z.string().trim().min(1)).min(3).max(10),
-});
+
 
 type ToolCallPayload = {
   id?: string;
@@ -135,9 +133,8 @@ export async function POST(request: Request) {
         ? techStackArray.join(", ")
         : "general role-relevant skills";
 
-    const { object } = await generateObject({
+    const { text } = await generateText({
       model: groq("llama-3.3-70b-versatile"),
-      schema: questionsSchema,
       prompt: `
         Prepare exactly ${amount} interview questions for a mock job interview.
 
@@ -153,17 +150,39 @@ export async function POST(request: Request) {
         - For Behavioral interviews, focus on experience, collaboration, communication, ownership, and decision-making.
         - For Technical interviews, focus on role-relevant practical knowledge and problem solving.
         - For Mixed interviews, include both technical and behavioral questions.
+
+        You MUST return ONLY a raw JSON array of ${amount} strings representing the questions.
+        Example: ["Question 1", "Question 2", "Question 3"]
+        Do not return markdown, backticks, or any conversational filler. Return just the raw JSON array.
       `,
       system:
-        "You are an expert interviewer creating concise mock interview questions. Return only data matching the requested schema.",
+        "You are an expert interviewer creating concise mock interview questions. Return ONLY a raw JSON array of strings.",
     });
+
+    let generatedQuestions: string[] = [];
+    try {
+      const cleanText = text.trim().replace(/^```json\s*/i, "").replace(/\s*```$/i, "");
+      generatedQuestions = JSON.parse(cleanText);
+    } catch (e) {
+      try {
+        const match = text.match(/\[[\s\S]*\]/);
+        generatedQuestions = match ? JSON.parse(match[0]) : [];
+      } catch (fallbackError) {
+        console.error("Failed to parse extracted JSON:", text);
+        throw new Error("Invalid question format received from AI");
+      }
+    }
+
+    if (!Array.isArray(generatedQuestions) || generatedQuestions.length === 0) {
+        throw new Error("AI did not return a valid array of questions");
+    }
 
     const interview = {
       role,
       type,
       level,
       techstack: techStackArray,
-      questions: object.questions.slice(0, amount),
+      questions: generatedQuestions.slice(0, amount),
       userId: userid,
       finalized: true,
       coverImage: getRandomInterviewCover(),
