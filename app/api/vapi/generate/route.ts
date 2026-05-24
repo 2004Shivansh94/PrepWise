@@ -6,8 +6,14 @@ import { getRandomInterviewCover } from "@/lib/utils";
 
 const generateInterviewSchema = z.object({
   role: z.string().trim().min(1, "Role is required"),
-  level: z.enum(["Junior", "Mid", "Senior"]),
-  type: z.enum(["Technical", "Behavioral", "Mixed"]),
+  level: z.preprocess(
+    (val) => typeof val === "string" ? val.charAt(0).toUpperCase() + val.slice(1).toLowerCase() : val,
+    z.enum(["Junior", "Mid", "Senior"])
+  ),
+  type: z.preprocess(
+    (val) => typeof val === "string" ? val.charAt(0).toUpperCase() + val.slice(1).toLowerCase() : val,
+    z.enum(["Technical", "Behavioral", "Mixed"])
+  ),
   techstack: z.union([z.string(), z.array(z.string())]).default(""),
   amount: z.coerce.number().int().min(3).max(10),
   userid: z.string().trim().min(1, "User ID is required"),
@@ -48,6 +54,13 @@ const getFirstToolCall = (
 const getToolCall = (body: unknown): ToolCallPayload | undefined => {
   if (!isRecord(body)) return undefined;
   const message = getNestedRecord(body, "message");
+
+  if (message && Array.isArray(message.toolWithToolCallList) && message.toolWithToolCallList.length > 0) {
+    const firstItem = message.toolWithToolCallList[0];
+    if (isRecord(firstItem) && isRecord(firstItem.toolCall)) {
+      return firstItem.toolCall as ToolCallPayload;
+    }
+  }
 
   return (
     (message && getFirstToolCall(message, "toolCallList")) ||
