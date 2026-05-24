@@ -7,11 +7,17 @@ import { getRandomInterviewCover } from "@/lib/utils";
 const generateInterviewSchema = z.object({
   role: z.string().trim().min(1, "Role is required"),
   level: z.preprocess(
-    (val) => typeof val === "string" ? val.charAt(0).toUpperCase() + val.slice(1).toLowerCase() : val,
+    (val) =>
+      typeof val === "string"
+        ? val.charAt(0).toUpperCase() + val.slice(1).toLowerCase()
+        : val,
     z.enum(["Junior", "Mid", "Senior"])
   ),
   type: z.preprocess(
-    (val) => typeof val === "string" ? val.charAt(0).toUpperCase() + val.slice(1).toLowerCase() : val,
+    (val) =>
+      typeof val === "string"
+        ? val.charAt(0).toUpperCase() + val.slice(1).toLowerCase()
+        : val,
     z.enum(["Technical", "Behavioral", "Mixed"])
   ),
   techstack: z.union([z.string(), z.array(z.string())]).default(""),
@@ -19,74 +25,10 @@ const generateInterviewSchema = z.object({
   userid: z.string().trim().min(1, "User ID is required"),
 });
 
-
-
-type ToolCallPayload = {
-  id?: string;
-  function?: {
-    name?: string;
-    arguments?: unknown;
-    parameters?: unknown;
-  };
-};
-
-const isRecord = (value: unknown): value is Record<string, unknown> => {
-  return typeof value === "object" && value !== null;
-};
-
-const getNestedRecord = (
-  value: Record<string, unknown>,
-  key: string
-): Record<string, unknown> | undefined => {
-  const nested = value[key];
-  return isRecord(nested) ? nested : undefined;
-};
-
-const getFirstToolCall = (
-  value: Record<string, unknown>,
-  key: string
-): ToolCallPayload | undefined => {
-  const list = value[key];
-  const first = Array.isArray(list) ? list[0] : undefined;
-  return isRecord(first) ? (first as ToolCallPayload) : undefined;
-};
-
-const getToolCall = (body: unknown): ToolCallPayload | undefined => {
-  if (!isRecord(body)) return undefined;
-  const message = getNestedRecord(body, "message");
-
-  if (message && Array.isArray(message.toolWithToolCallList) && message.toolWithToolCallList.length > 0) {
-    const firstItem = message.toolWithToolCallList[0];
-    if (isRecord(firstItem) && isRecord(firstItem.toolCall)) {
-      return firstItem.toolCall as ToolCallPayload;
-    }
-  }
-
-  return (
-    (message && getFirstToolCall(message, "toolCallList")) ||
-    (message && getFirstToolCall(message, "toolCalls")) ||
-    getFirstToolCall(body, "toolCallList") ||
-    getFirstToolCall(body, "toolCalls")
-  );
-};
-
-const parseToolArguments = (body: unknown) => {
-  const toolCall = getToolCall(body);
-
-  let args = toolCall?.function?.arguments ?? body;
-
-  if (typeof args === "string") {
-    args = JSON.parse(args);
-  }
-
-  return { toolCall, args };
-};
-
 const toTechStackArray = (techstack: string | string[]) => {
   if (Array.isArray(techstack)) {
     return techstack.map((tech) => tech.trim()).filter(Boolean);
   }
-
   const normalized = techstack.trim();
   if (
     !normalized ||
@@ -95,20 +37,124 @@ const toTechStackArray = (techstack: string | string[]) => {
   ) {
     return [];
   }
-
-  return normalized.split(",").map((tech) => tech.trim()).filter(Boolean);
+  return normalized
+    .split(",")
+    .map((tech) => tech.trim())
+    .filter(Boolean);
 };
 
-const buildToolResponse = ({
-  toolCall,
+/**
+ * Recursively extract all tool call arguments from whatever shape Vapi sends.
+ * Returns { toolCallId, toolCallName, args } or null.
+ */
+function extractToolCall(body: unknown): {
+  toolCallId: string | undefined;
+  toolCallName: string | undefined;
+  args: Record<string, unknown>;
+} | null {
+  if (!body || typeof body !== "object") return null;
+  const b = body as Record<string, unknown>;
+
+  // Pattern 1: message.toolWithToolCallList[0].toolCall
+  const message = b.message as Record<string, unknown> | undefined;
+  if (message) {
+    const twList = message.toolWithToolCallList;
+    if (Array.isArray(twList) && twList.length > 0) {
+      const first = twList[0] as Record<string, unknown>;
+      const tc = first.toolCall as Record<string, unknown> | undefined;
+      if (tc) {
+        const fn = tc.function as Record<string, unknown> | undefined;
+        let args = fn?.arguments ?? fn?.parameters;
+        if (typeof args === "string") {
+          try {
+            args = JSON.parse(args);
+          } catch {
+            // not JSON
+          }
+        }
+        if (args && typeof args === "object") {
+          return {
+            toolCallId: tc.id as string | undefined,
+            toolCallName: fn?.name as string | undefined,
+            args: args as Record<string, unknown>,
+          };
+        }
+      }
+    }
+
+    // Pattern 2: message.toolCallList[0] or message.toolCalls[0]
+    for (const key of ["toolCallList", "toolCalls"]) {
+      const list = message[key];
+      if (Array.isArray(list) && list.length > 0) {
+        const first = list[0] as Record<string, unknown>;
+        const fn = first.function as Record<string, unknown> | undefined;
+        let args = fn?.arguments ?? fn?.parameters;
+        if (typeof args === "string") {
+          try {
+            args = JSON.parse(args);
+          } catch {
+            // not JSON
+          }
+        }
+        if (args && typeof args === "object") {
+          return {
+            toolCallId: first.id as string | undefined,
+            toolCallName: fn?.name as string | undefined,
+            args: args as Record<string, unknown>,
+          };
+        }
+      }
+    }
+  }
+
+  // Pattern 3: top-level toolCallList or toolCalls
+  for (const key of ["toolCallList", "toolCalls"]) {
+    const list = b[key];
+    if (Array.isArray(list) && list.length > 0) {
+      const first = list[0] as Record<string, unknown>;
+      const fn = first.function as Record<string, unknown> | undefined;
+      let args = fn?.arguments ?? fn?.parameters;
+      if (typeof args === "string") {
+        try {
+          args = JSON.parse(args);
+        } catch {
+          // not JSON
+        }
+      }
+      if (args && typeof args === "object") {
+        return {
+          toolCallId: first.id as string | undefined,
+          toolCallName: fn?.name as string | undefined,
+          args: args as Record<string, unknown>,
+        };
+      }
+    }
+  }
+
+  // Pattern 4: body itself has the fields directly (fallback)
+  if (b.role || b.userid) {
+    return {
+      toolCallId: undefined,
+      toolCallName: "generateInterview",
+      args: b,
+    };
+  }
+
+  return null;
+}
+
+function buildToolResponse({
+  toolCallId,
+  toolCallName,
   result,
   error,
 }: {
-  toolCall?: ToolCallPayload;
+  toolCallId: string | undefined;
+  toolCallName: string | undefined;
   result?: string;
   error?: string;
-}) => {
-  if (!toolCall?.id) {
+}) {
+  if (!toolCallId) {
     return Response.json(
       error ? { success: false, error } : { success: true, result },
       { status: error ? 500 : 200 }
@@ -119,26 +165,37 @@ const buildToolResponse = ({
     {
       results: [
         {
-          toolCallId: toolCall.id,
-          name: toolCall?.function?.name ?? "generateInterview",
+          toolCallId,
+          name: toolCallName ?? "generateInterview",
           result: error || result,
         },
       ],
     },
     { status: 200 }
   );
-};
+}
 
 export async function POST(request: Request) {
-  let toolCall: ToolCallPayload | undefined;
+  let toolCallId: string | undefined;
+  let toolCallName: string | undefined;
 
   try {
     const body = await request.json();
-    const parsedTool = parseToolArguments(body);
-    toolCall = parsedTool.toolCall;
+    console.log("[vapi/generate] raw body:", JSON.stringify(body, null, 2));
+
+    const extracted = extractToolCall(body);
+    if (!extracted) {
+      throw new Error("Could not extract tool call arguments from Vapi payload");
+    }
+
+    toolCallId = extracted.toolCallId;
+    toolCallName = extracted.toolCallName;
+    const args = extracted.args;
+
+    console.log("[vapi/generate] extracted args:", args);
 
     const { role, level, type, techstack, amount, userid } =
-      generateInterviewSchema.parse(parsedTool.args);
+      generateInterviewSchema.parse(args);
 
     const techStackArray = toTechStackArray(techstack);
     const techStackPrompt =
@@ -174,20 +231,20 @@ export async function POST(request: Request) {
 
     let generatedQuestions: string[] = [];
     try {
-      const cleanText = text.trim().replace(/^```json\s*/i, "").replace(/\s*```$/i, "");
+      const cleanText = text
+        .trim()
+        .replace(/^```json\s*/i, "")
+        .replace(/\s*```$/i, "");
       generatedQuestions = JSON.parse(cleanText);
-    } catch (e) {
-      try {
-        const match = text.match(/\[[\s\S]*\]/);
-        generatedQuestions = match ? JSON.parse(match[0]) : [];
-      } catch (fallbackError) {
-        console.error("Failed to parse extracted JSON:", text);
-        throw new Error("Invalid question format received from AI");
+    } catch {
+      const match = text.match(/\[[\s\S]*\]/);
+      if (match) {
+        generatedQuestions = JSON.parse(match[0]);
       }
     }
 
     if (!Array.isArray(generatedQuestions) || generatedQuestions.length === 0) {
-        throw new Error("AI did not return a valid array of questions");
+      throw new Error("AI did not return a valid array of questions");
     }
 
     const interview = {
@@ -205,16 +262,19 @@ export async function POST(request: Request) {
     await db.collection("interviews").add(interview);
 
     return buildToolResponse({
-      toolCall,
+      toolCallId,
+      toolCallName,
       result:
         "Interview generated successfully! You can now go back to the dashboard to take your interview.",
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error:", error);
+    const message =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("[vapi/generate] Error:", error);
 
     return buildToolResponse({
-      toolCall,
+      toolCallId,
+      toolCallName,
       error: `I'm sorry, I encountered an error while generating the interview questions: ${message}. Let's try again.`,
     });
   }
