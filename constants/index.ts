@@ -119,7 +119,10 @@ export const interviewer: CreateAssistantDTO = {
     provider: "deepgram",
     model: "nova-2",
     language: "en",
+    smartFormat: true,
   },
+  // @ts-ignore
+  backchannelingEnabled: true,
   voice: {
     provider: "11labs",
     voiceId: "EXAVITQu4vr4xnSDxMaL",
@@ -176,7 +179,10 @@ export const generateInterviewer: CreateAssistantDTO = {
     provider: "deepgram",
     model: "nova-2",
     language: "en",
+    smartFormat: true,
   },
+  // @ts-ignore
+  backchannelingEnabled: true,
   voice: {
     provider: "11labs",
     voiceId: "EXAVITQu4vr4xnSDxMaL",
